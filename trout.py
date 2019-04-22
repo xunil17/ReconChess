@@ -7,7 +7,7 @@ from player import Player
 from typing import List, Tuple, Optional
 from enum import Enum
 from evaluate_network import fen_to_bin
-from knight_movement import minStepToReachTarget
+from board_utils import minStepToReachTarget
 
 Square = int
 Color = bool

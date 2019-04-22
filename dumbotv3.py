@@ -6,7 +6,7 @@ from player import Player
 from typing import List, Tuple, Optional
 from enum import Enum
 from evaluate_network import fen_to_bin
-from knight_movement import minStepToReachTarget
+from board_utils import minStepToReachTarget, getSquaresMinDistAway
 from keras_chess import kerasChessNetwork
 import copy
 import time
@@ -15,32 +15,19 @@ Square = int
 Color = bool
 PieceType = int
 
-#given board state, want to sense stuff that gives you most information
-# places where good information are?
 
-# where last piece was captured
-# most places where your pieces are attacking
-# never sense in the corners
-# based on where my pieces are
-# maybe where evaluation funtion of stockfish changed the most?? before and after sense
-# 
-
-
-# how to update board based on sensing to get rid of multiple pieces showing
-# save which sensing time that piece was last seen
-
-# always correct assumption
+# SENSING HEURISTICS
+# always correct assumption:
 # king - always remove old
 # bishop - always remove old on same color diagonal
 
-# most of the time correct assumption
+# most of the time correct assumption:
 # pawn - if right after capture, leave there, else, remove the one in same column below
 # queen - always remove old
 
-# maybe correct assumption??
-# knight - if more than 2 - remove one of the old ones
-# rook - if more than 2 - remove one of the old ones
-# ideally - you should know which knight or rook it is to remove
+# maybe correct assumption:
+# knight - if more than 2 - remove the closer of the two knights that took to get there
+# rook - if more than 2 - remove one of the old ones (not implemented)
 
 # move sequences from white's perspective, flipped at runtime if playing as black
 QUICK_ATTACKS = [
@@ -92,18 +79,19 @@ class dumbotV3(Player):
 
         #SET TO EMPTY LIST TO DISABLE OPENING ATTACKS
         self.move_sequence = random.choice(QUICK_ATTACKS)
-        # self.move_sequence = []
 
-        board_edges = [
+        self.board_edges = [
         chess.A1, chess.B1, chess.C1, chess.D1, chess.E1, chess.F1, chess.G1, chess.H1, 
         chess.H2, chess.H3, chess.H4, chess.H5, chess.H6, chess.H7, chess.H8, 
         chess.A2, chess.A3, chess.A4, chess.A5, chess.A6, chess.A7, chess.A8, 
         chess.B8, chess.C8, chess.D8, chess.E8, chess.F8, chess.G8]
 
-        self.good_sense_actions = list(set(chess.SQUARES) - set(board_edges))
-
+        # Remove all corners from possible sensing
+        self.good_sense_actions = list(set(chess.SQUARES) - set(self.board_edges))
 
         self.chessNet = kerasChessNetwork('dumbot_weights.hdf5')
+
+        self.lost_king_counter = 0
 
 
     def handle_game_start(self, color: Color, board: chess.Board):
@@ -127,29 +115,36 @@ class dumbotV3(Player):
     def choose_sense(self, sense_actions: List[Square], move_actions: List[chess.Move], seconds_left: float) -> Square:
         #if last turn there was a piece where king used to be - look for where king is
         if self.nextSenseLocation:
-            print ("Sensing Last Weird Location")
-            print (self.nextSenseLocation)
             nextSenseSquare = self.nextSenseLocation[0]
             nextSenseKing = self.nextSenseLocation[1]
             if nextSenseKing:
-                #choose  randomly somewhere close to nextSenseLocation
-                # up down left right
-                dy = [8, -8, 0, 0]
-                dx = [0, 0, -1, 1]
-                senseList = []
-                # only choose right, up, down
-                if nextSenseSquare % 8 == 0:
-                    return nextSenseSquare + 1
-                #     senseList = [self.nextSenseLocation + 8, self.nextSenseLocation - 8, ]
-                # # only choose left, up, down
-                elif (nextSenseSquare + 1) % 8 == 0:
-                    return nextSenseSquare - 1
+                print ("Sensing lost king location")
+                print (self.lost_king_counter)
+                print (chess.SQUARE_NAMES[nextSenseSquare])
+                #choose randomly somewhere close to nextSenseSquare
+                surroundSquaresList = getSquaresMinDistAway(nextSenseSquare, self.lost_king_counter)
+                senseList = list(set(surroundSquaresList) - set(self.board_edges))
+                return random.choice(senseList)
+                # # If in first file - return square to the right
+                # if nextSenseSquare % 8 == 0:
+                #     return nextSenseSquare + 1
+                # # If in eighth file - return square to left
+                # elif (nextSenseSquare + 1) % 8 == 0:
+                #     return nextSenseSquare - 1
+                # # If in first rank - sense above
+                # elif chess.square_rank(nextSenseSquare) == 0:
+                #     return nextSenseSquare + 8
+                # # If in eighth rank - sense below
+                # elif chess.square_rank(nextSenseSquare) == 7:
+                #     return nextSenseSquare - 8
+                # # In middle of the board - look around
+                # else:
+                #     senseList = [nextSenseSquare + 1, nextSenseSquare - 1]
+                #     return random.choice(senseList)
 
-                else:
-                    senseList = [nextSenseSquare + 1, nextSenseSquare - 1]
-                    return random.choice(senseList)
             else:
                 # return where our last move failed
+                print ("Sensing last move failed location")
                 return nextSenseSquare
 
         # if our piece was just captured, sense where it was captured
@@ -208,17 +203,37 @@ class dumbotV3(Player):
     def set_board_piece(self, square, piece):
         piece_at_square = self.board.piece_at(square)
 
-        if (piece_at_square):
-            if piece_at_square.symbol().lower() == "k":
-                #trying to set new thing to where old king was
-                #print ("trying to set new piece where king used to be")
+        if piece_at_square:
+            piece_at_square_symbol = piece_at_square.symbol().lower()
+        else:
+            piece_at_square_symbol = None
+
+        if piece:
+            piece_symbol = piece.symbol().lower()
+        else:
+            piece_symbol = None
+
+        if piece_at_square_symbol == "k" and piece_symbol != "k":
                 #don't place new piece here just yet - look for king
                 self.nextSenseLocation = (square, True)
-            else:
-                self.board.set_piece_at(square, piece)
+                self.lost_king_counter += 1
         else:
-            #old square is empty - place new piece there
-            self.board.set_piece_at(square, piece)
+            self.board.set_piece_at(square,piece)          
+
+
+        # if trying to place another piece where king used to be that's not the king
+        # if piece_at_square:
+        #     if piece_at_square.symbol().lower() == "k" and piece.symbol().lower() != "k":
+        #             if not piece:
+        #                 #don't place new piece here just yet - look for king
+        #                 self.nextSenseLocation = (square, True)
+        #                 self.lost_king_counter += 1
+        #             elif piece
+        #     else:
+        #         self.board.set_piece_at(square, piece)
+        # else:
+        #     #old square is empty - place new piece there
+        #     self.board.set_piece_at(square, piece)
 
     def handle_sensed_knight(self, new_knight_square, piece):
         old_knight = np.array(self.board.pieces(chess.KNIGHT, not self.color).tolist())
@@ -256,7 +271,8 @@ class dumbotV3(Player):
 
     def handle_sensed_king(self, new_king_square, piece):
         ''' updates self.board if sensed king'''
-
+        self.lost_king_counter = 0
+        self.nextSenseLocation = None
         old_king = np.array(self.board.pieces(chess.KING, not self.color).tolist())
         old_king_locations = np.where(old_king == True)[0]
 
@@ -434,6 +450,7 @@ class dumbotV3(Player):
             # handle case where the piece moved was king - could be castling
             if piece_at_square.symbol().lower() == "k":
                 self.board.push(taken_move)
+            # if pawn promotion - use board push
             elif piece_at_square.symbol().lower() == "p" and chess.square_rank(to_square) == opposite_end:
                 self.board.push(taken_move)
             else:
@@ -449,7 +466,6 @@ class dumbotV3(Player):
                 # regardless of what the piece at the to_square is, place our piece there now
                 self.board.set_piece_at(to_square, piece_at_square)
                 
-
             
             #print (from_square, to_square)
             #print (self.board)

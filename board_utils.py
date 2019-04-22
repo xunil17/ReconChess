@@ -1,5 +1,13 @@
 import chess
 
+# returns list of squares dist away from input_square
+# input_square: int representing desired square
+# dist: how many squares 
+def getSquaresMinDistAway(input_square, dist):
+    all_squares = list(chess.SQUARES)
+    return [square for square in all_squares if chess.square_distance(square, input_square) <= dist ]
+
+
 class cell: 
       
     def __init__(self, x = 0, y = 0, dist = 0): 
@@ -86,5 +94,15 @@ if __name__=='__main__':
 
     # print(minStepToReachTarget(knightpos, targetpos, N)) 
 
-    print(minStepToReachTarget([1+1,5+1], [0+1,7+1], N))
-    print(minStepToReachTarget([3+1,3+1], [0+1,7+1], N))
+    # print(minStepToReachTarget([1+1,5+1], [0+1,7+1], N))
+    # print(minStepToReachTarget([3+1,3+1], [0+1,7+1], N))
+
+    board_edges = [
+    chess.A1, chess.B1, chess.C1, chess.D1, chess.E1, chess.F1, chess.G1, chess.H1, 
+    chess.H2, chess.H3, chess.H4, chess.H5, chess.H6, chess.H7, chess.H8, 
+    chess.A2, chess.A3, chess.A4, chess.A5, chess.A6, chess.A7, chess.A8, 
+    chess.B8, chess.C8, chess.D8, chess.E8, chess.F8, chess.G8]
+
+    surround_squares =  (getSquaresMinDistAway(chess.G1, 1))
+    good_surrounding_squares = list(set(surround_squares) - set(board_edges))
+    print (good_surrounding_squares)
