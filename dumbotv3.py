@@ -161,12 +161,20 @@ class dumbotV3(Player):
             print ("Sensing future want to capture square")
             return future_move.to_square
 
+        # print (sense_actions)
         # otherwise, just randomly choose a sense action, but don't sense on a square where our pieces are located
-        for square, piece in self.board.piece_map().items():
-            if (piece.color == self.color) or (square in self.board_edges):
+        for square in sense_actions:
+            piece = self.board.piece_at(square)
+            if square in self.board_edges:
+                # print (square, chess.SQUARE_NAMES[square])
                 sense_actions.remove(square)
+            if piece:
+                if piece.color == self.color and square in sense_actions:
+                    sense_actions.remove(square)
+
 
         print ("Sensing randomly")
+        print (sense_actions)
         return random.choice(sense_actions)
 
     def handle_sense_result(self, sense_result: List[Tuple[Square, Optional[chess.Piece]]]):
@@ -330,9 +338,10 @@ class dumbotV3(Player):
                 # print (self.move_sequence)
                 self.move_sequence.pop(0)
 
+        self.board.turn = self.color
         # after opening attack
-        if len(self.move_sequence) == 0:
-            self.board.turn = self.color
+        if len(self.move_sequence) == 0 or self.board.is_check():
+            
             # try to take king if we can and we are not in check ourselves
             if not self.board.is_check():
                 enemy_king_square = self.board.king(not self.color)
