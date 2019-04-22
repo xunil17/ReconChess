@@ -163,19 +163,19 @@ class dumbotV3(Player):
 
         # print (sense_actions)
         # otherwise, just randomly choose a sense action, but don't sense on a square where our pieces are located
+        good_sense_actions = []
         for square in sense_actions:
             piece = self.board.piece_at(square)
-            if square in self.board_edges:
-                # print (square, chess.SQUARE_NAMES[square])
-                sense_actions.remove(square)
-            if piece:
-                if piece.color == self.color and square in sense_actions:
-                    sense_actions.remove(square)
+            if square not in self.board_edges:
+                good_sense_actions.append(square)
+                if piece:
+                    if piece.color == self.color:
+                        good_sense_actions.remove(square)
 
 
         print ("Sensing randomly")
-        print (sense_actions)
-        return random.choice(sense_actions)
+        print (good_sense_actions)
+        return random.choice(good_sense_actions)
 
     def handle_sense_result(self, sense_result: List[Tuple[Square, Optional[chess.Piece]]]):
         # add the pieces in the sense result to our board
