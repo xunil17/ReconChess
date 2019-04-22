@@ -11,7 +11,7 @@ import os
 import glob
 import tensorflow as tf
 
-from keras.utils import plot_model
+# from keras.utils import plot_model
 import keras.backend as K
 from keras.callbacks import ModelCheckpoint
 # from tensorflow.contrib import predictor
@@ -158,7 +158,7 @@ class kerasChessNetwork:
             self.model.load_weights(self.weightPath)
             print ("Loaded Weights")
 
-        plot_model(self.model, to_file='model.png')
+        # plot_model(self.model, to_file='model.png')
 
 
         return self.model

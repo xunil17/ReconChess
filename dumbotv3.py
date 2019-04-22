@@ -63,7 +63,7 @@ QUICK_ATTACKS = [
     [],
 ]
 
-QUICK_ATTACKS = [[]]
+# QUICK_ATTACKS = [[]]
 
 def flipped_move(move):
     def flipped(square):
