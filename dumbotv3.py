@@ -383,7 +383,7 @@ class dumbotV3(Player):
                 from_square = move.from_square
                 to_square = move.to_square
 
-                piece_at_square = newChessBoard.piece_at(from_square)
+                piece_to_move = newChessBoard.piece_at(from_square)
 
                 newChessBoard.push(move)
                 # if piece_at_square.symbol().lower() == "k":
@@ -396,12 +396,28 @@ class dumbotV3(Player):
                 newChessBoard.turn = not self.color
 
                 #if we are trying to move pawn diagonally and there is no piece there -> don't move
-                if self.board.piece_at(to_square) == None and piece_at_square.symbol().lower() == "p" and chess.square_file(from_square) != chess.square_file(to_square):
+                if self.board.piece_at(to_square) == None and piece_to_move.symbol().lower() == "p" and chess.square_file(from_square) != chess.square_file(to_square):
                     newBoardScore = self.int_set
 
                 #if there is a piece in front and our pawn is trying to move there -> can't take that piece
-                elif self.board.piece_at(to_square) and piece_at_square.symbol().lower() == "p" and chess.square_file(from_square) == chess.square_file(to_square):
-                    newBoardScore = self.int_set
+                elif piece_to_move.symbol().lower() == "p" and chess.square_file(from_square) == chess.square_file(to_square):
+                    if self.board.piece_at(to_square):
+                        newBoardScore = self.int_set
+                    # trying to move two ahead
+                    elif chess.square_distance(from_square, to_square) == 2:
+                        # there's a piece inbetween pawn and desired location
+                        if self.color == chess.WHITE and self.board.piece_at(to_square - 8):
+                            newBoardScore = self.int_set
+                        elif self.color == chess.BLACK and self.board.piece_at(to_square + 8):
+                            newBoardScore = self.int_set
+                        else:
+                            nn_board = fen_to_bin(newChessBoard.fen())
+                            newBoardScore = self.chessNet.retrieveBoardValueNeuralNet(nn_board)
+                            # print(newBoardScore)    
+                    else:
+                        nn_board = fen_to_bin(newChessBoard.fen())
+                        newBoardScore = self.chessNet.retrieveBoardValueNeuralNet(nn_board)
+                        # print(newBoardScore)
                 
                 # if we are in check - try to get out
                 elif newChessBoard.was_into_check():
@@ -409,11 +425,12 @@ class dumbotV3(Player):
                 else:
                     nn_board = fen_to_bin(newChessBoard.fen())
                     newBoardScore = self.chessNet.retrieveBoardValueNeuralNet(nn_board)
-                # print ('\n')
+                
                 # print (newChessBoard.fen())
                 # print (newChessBoard)
                 # print (newBoardScore)
                 # print (move)
+                # print ('\n')
 
                 scores.append(newBoardScore)
 

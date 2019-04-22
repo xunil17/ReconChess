@@ -14,6 +14,7 @@ import tensorflow as tf
 # from keras.utils import plot_model
 import keras.backend as K
 from keras.callbacks import ModelCheckpoint
+from evaluate_network import fen_to_bin
 # from tensorflow.contrib import predictor
 # import os 
 
@@ -209,14 +210,22 @@ class kerasChessNetwork:
 if __name__ == '__main__':
     # chessNet = chessNetwork('model/net.ckpt')
     # chessNet = kerasChessNetwork('model_keras/after_training_99_weights.best.hdf5')
-    chessNet = kerasChessNetwork('model_keras/weights.best.hdf5')
+    chessNet = kerasChessNetwork('dumbot_weights.hdf5')
     
-    chessNet.trainModel()
+    # chessNet.trainModel()
     # chessNet.testModel('training/newerish/training18.csv')
     # chessNet.createModel()
     # chessNet.readInData()
     # 
 
+    a = chessNet.retrieveBoardValueNeuralNet(fen_to_bin("rnbqkbnr/pppppppp/8/8/4P3/P5P1/1PPP1P1P/RNBQKBNR b KQkq - 0 1"))
+    b = chessNet.retrieveBoardValueNeuralNet(fen_to_bin("rnbqkbnr/pppppppp/8/8/3P4/P5P1/1PP1PP1P/RNBQKBNR b KQkq - 0 1"))
+    c = chessNet.retrieveBoardValueNeuralNet(fen_to_bin("rnbqkbnr/pppppppp/8/8/7P/P5P1/1PPPPP2/RNBQKBNR b KQkq - 0 1"))
+
+
+    print (a)
+    print (b)
+    print (c)
     # chessNet.loadModel("model/save_net14.ckpt")
     
     # a = chessNet.retrieveBoardValueNeuralNet([0,-1,0,0,0,0,0,0,0,0,0,0,0,0,-1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-1,0,0,0,0,0,0,0,0,0,0,0,0,-1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-1,0,0,0,0,0,0,0,0,0,0,-1,0,0,0,0,0,0,0,0,0,0,0,-1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-1,0,0,0,0,0,0,0,0,0,0,0,-1,0,0,0,0,0,0,0,0,0,0,0,-1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0])
