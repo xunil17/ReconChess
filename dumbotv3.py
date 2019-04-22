@@ -63,7 +63,7 @@ QUICK_ATTACKS = [
     [],
 ]
 
-# QUICK_ATTACKS = [[]]
+QUICK_ATTACKS = [[]]
 
 def flipped_move(move):
     def flipped(square):
@@ -94,11 +94,13 @@ class dumbotV3(Player):
         self.move_sequence = random.choice(QUICK_ATTACKS)
         # self.move_sequence = []
 
-        self.board_edges = [
+        board_edges = [
         chess.A1, chess.B1, chess.C1, chess.D1, chess.E1, chess.F1, chess.G1, chess.H1, 
         chess.H2, chess.H3, chess.H4, chess.H5, chess.H6, chess.H7, chess.H8, 
         chess.A2, chess.A3, chess.A4, chess.A5, chess.A6, chess.A7, chess.A8, 
         chess.B8, chess.C8, chess.D8, chess.E8, chess.F8, chess.G8]
+
+        self.good_sense_actions = list(set(chess.SQUARES) - set(board_edges))
 
 
         self.chessNet = kerasChessNetwork('dumbot_weights.hdf5')
@@ -163,19 +165,16 @@ class dumbotV3(Player):
 
         # print (sense_actions)
         # otherwise, just randomly choose a sense action, but don't sense on a square where our pieces are located
-        good_sense_actions = []
-        for square in sense_actions:
+        sense_actions = self.good_sense_actions
+        for square in self.good_sense_actions:
             piece = self.board.piece_at(square)
-            if square not in self.board_edges:
-                good_sense_actions.append(square)
-                if piece:
-                    if piece.color == self.color:
-                        good_sense_actions.remove(square)
+            if piece:
+                if piece.color == self.color:
+                    sense_actions.remove(square)
 
 
         print ("Sensing randomly")
-        print (good_sense_actions)
-        return random.choice(good_sense_actions)
+        return random.choice(sense_actions)
 
     def handle_sense_result(self, sense_result: List[Tuple[Square, Optional[chess.Piece]]]):
         # add the pieces in the sense result to our board
