@@ -426,8 +426,15 @@ class dumbotV3(Player):
             to_square = taken_move.to_square
             piece_at_square = self.board.piece_at(from_square)
 
+            if self.color == chess.WHITE:
+                opposite_end = 7 
+            elif self.color == chess.BLACK:
+                opposite_end = 0 
+
             # handle case where the piece moved was king - could be castling
             if piece_at_square.symbol().lower() == "k":
+                self.board.push(taken_move)
+            elif piece_at_square.symbol().lower() == "p" and chess.square_rank(to_square) == opposite_end:
                 self.board.push(taken_move)
             else:
 
