@@ -110,10 +110,11 @@ class dumbotV3(Player):
         if color == chess.BLACK:
             self.move_sequence = list(map(flipped_move, self.move_sequence))
 
-        if self.color == chess.BLACK: #black need to set to 2
-            self.int_set = 2
-        elif self.color == chess.WHITE: # white, need to set to 0
-            self.int_set = 0
+        self.int_set = 2
+        # if self.color == chess.BLACK: #black need to set to 2
+        #     self.int_set = 2
+        # elif self.color == chess.WHITE: # white, need to set to 0
+        #     self.int_set = 0
 
     def handle_opponent_move_result(self, captured_my_piece: bool, capture_square: Optional[Square]):
         # if the opponent captured our piece, remove it from our board.
@@ -345,7 +346,7 @@ class dumbotV3(Player):
 
             # otherwise, move with neural network
             print ("OGBOARD")
-            print (self.board.fen())
+            # print (self.board.fen())
             print (self.board)
             print ('\n')
 
@@ -384,18 +385,18 @@ class dumbotV3(Player):
                 else:
                     nn_board = fen_to_bin(newChessBoard.fen())
                     newBoardScore = self.chessNet.retrieveBoardValueNeuralNet(nn_board)
-                print ('\n')
-                print (newChessBoard.fen())
-                print (newChessBoard)
-                print (newBoardScore)
-                print (move)
+                # print ('\n')
+                # print (newChessBoard.fen())
+                # print (newChessBoard)
+                # print (newBoardScore)
+                # print (move)
 
                 scores.append(newBoardScore)
 
-            if self.color == chess.BLACK: #black
-                ind = np.argmin(scores)
-            elif self.color == chess.WHITE:
-                ind = np.argmax(scores)
+            # if self.color == chess.BLACK: #black
+            ind = np.argmin(scores)
+            # elif self.color == chess.WHITE:
+                # ind = np.argmax(scores)
             return move_actions[ind]
         else:
             # do opening attack
