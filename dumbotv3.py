@@ -47,7 +47,9 @@ QUICK_ATTACKS = [
         chess.C4, chess.F7), chess.Move(chess.F7, chess.E8), chess.Move(chess.H5, chess.E8)],
 
     # no weird moves
-    []
+    [], 
+    [],
+    [],
 ]
 
 # QUICK_ATTACKS = [[]]
