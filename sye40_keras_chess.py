@@ -14,7 +14,7 @@ import tensorflow as tf
 # from keras.utils import plot_model
 import keras.backend as K
 from keras.callbacks import ModelCheckpoint
-from evaluate_network import fen_to_bin
+from sye40_evaluate_network import fen_to_bin
 # from tensorflow.contrib import predictor
 # import os 
 
