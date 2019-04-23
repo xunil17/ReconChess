@@ -47,15 +47,18 @@ QUICK_ATTACKS = [
         chess.C4, chess.F7), chess.Move(chess.F7, chess.E8), chess.Move(chess.H5, chess.E8)],
 
     # no weird moves
-    [],
+    []
 ]
 
-QUICK_ATTACKS = [[]]
+# QUICK_ATTACKS = [[]]
+# from white perspective
+# after third, look for queen - G4, look for bishop - C4
+QUICK_SENSE = [chess.E4, chess.C4, chess.E3, chess.E3, chess.G4]
+
+def flipped(square):
+    return chess.square(chess.square_file(square), 7 - chess.square_rank(square))
 
 def flipped_move(move):
-    def flipped(square):
-        return chess.square(chess.square_file(square), 7 - chess.square_rank(square))
-
     return chess.Move(from_square=flipped(move.from_square), to_square=flipped(move.to_square), promotion=move.promotion, drop=move.drop)
 
 
@@ -78,7 +81,9 @@ class dumbotV3(Player):
         self.nextSenseLocation = None
 
         #SET TO EMPTY LIST TO DISABLE OPENING ATTACKS
-        self.move_sequence = random.choice(QUICK_ATTACKS)
+        self.move_sequence = random.choice(copy.deepcopy(QUICK_ATTACKS))
+
+        self.quick_sequence = copy.deepcopy(QUICK_SENSE)
 
         self.board_edges = [
         chess.A1, chess.B1, chess.C1, chess.D1, chess.E1, chess.F1, chess.G1, chess.H1, 
@@ -99,6 +104,7 @@ class dumbotV3(Player):
         self.color = color
         if color == chess.BLACK:
             self.move_sequence = list(map(flipped_move, self.move_sequence))
+            self.quick_sequence = list(map(flipped, self.quick_sequence))
 
         self.int_set = 2
         # if self.color == chess.BLACK: #black need to set to 2
@@ -113,6 +119,14 @@ class dumbotV3(Player):
             self.board.remove_piece_at(capture_square)
 
     def choose_sense(self, sense_actions: List[Square], move_actions: List[chess.Move], seconds_left: float) -> Square:
+        # if our piece was just captured, sense where it was captured
+        if self.my_piece_captured_square:
+            print ("Sensing where last piece was captured")
+            return self.my_piece_captured_square
+
+        if len(self.quick_sequence) != 0:
+            return self.quick_sequence.pop(0)
+
         #if last turn there was a piece where king used to be - look for where king is
         if self.nextSenseLocation:
             nextSenseSquare = self.nextSenseLocation[0]
@@ -146,11 +160,6 @@ class dumbotV3(Player):
                 # return where our last move failed
                 print ("Sensing last move failed location")
                 return nextSenseSquare
-
-        # if our piece was just captured, sense where it was captured
-        if self.my_piece_captured_square:
-            print ("Sensing where last piece was captured")
-            return self.my_piece_captured_square
 
         # if we might capture a piece when we move, sense where the capture will occur
         future_move = self.choose_move(move_actions, seconds_left, save_bool = False, sensing = True)
